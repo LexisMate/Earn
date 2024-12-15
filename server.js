@@ -7,8 +7,18 @@ const userRoutes = require('./routes/user');
 const app = express();
 app.use(bodyParser.json());
 
-// Serve static files (Frontend)
+// Serve static files from the "public" folder
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Route to serve "login.html" at "/login"
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Route to serve "register.html" at "/register"
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'register.html'));
+});
 
 // API Routes
 app.use('/api/user', userRoutes);
