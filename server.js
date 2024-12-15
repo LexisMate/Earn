@@ -5,8 +5,22 @@ const path = require('path');
 const userRoutes = require('./routes/user');
 const pool = require('./db');
 const app = express();
-app.use(bodyParser.json());
+
+// Middleware to serve static assets like CSS and JS files from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.json());
+
+// Dynamically handle page routing without .html extensions
+const pages = ['login', 'register', 'dashboard', 'withdraw', 'settings'];
+
+// Loop through the pages and create routes for each
+pages.forEach(page => {
+  app.get(`/${page}`, (req, res) => {
+    res.sendFile(path.join(__dirname, `${page}.html`));
+  });
+});
+
+// Database table creation
 pool.query(`
   CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -21,21 +35,18 @@ pool.query(`
     console.log('Users table ensured in the database.');
   }
 });
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'register.html'));
-});
+
+// Authentication middleware
 const checkAuth = (req, res, next) => {
   const token = req.headers.authorization;
   if (!token) return res.redirect('/login');
   if (token !== 'valid-token') return res.redirect('/login');
   next();
 };
-app.get('/dashboard', checkAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
+
+// API Routes
 app.use('/api/user', userRoutes);
+
+// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
