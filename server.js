@@ -7,9 +7,9 @@ const pool = require('./db');
 const app = express();
 
 // Middleware to serve static assets like CSS and JS files from the 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.json());
-
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 // Dynamically handle page routing without .html extensions
 const pages = ['login', 'register', 'dashboard', 'withdraw', 'settings'];
 
