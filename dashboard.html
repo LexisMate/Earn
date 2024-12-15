@@ -175,6 +175,28 @@
     </footer>
 
     <script>
+        // Check if user is logged in
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/user/auth', { method: 'GET', credentials: 'include' });
+
+                if (!res.ok) {
+                    // If not authenticated, redirect to login
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await res.json();
+                console.log('User authenticated:', data);
+            } catch (error) {
+                console.error('Error checking authentication:', error);
+                window.location.href = '/login'; // Redirect on error
+            }
+        }
+
+        // Call authentication check on page load
+        checkAuth();
+
         // Simulated User Data (Fetch this dynamically in a real app)
         let totalEarnings = 50.25;
         let adsWatched = 75;
