@@ -2,12 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
-const pool = require('../db'); // PostgreSQL connection
+const pool = require('../db');
 const crypto = require('crypto');
-
-let otpCache = {}; // Temporary storage for OTPs
-
-// Registration Endpoint
+let otpCache = {};
 router.post('/register', [
   body('email').isEmail().withMessage('Invalid email').matches(/@gmail\.com$/).withMessage('Only Gmail accounts are allowed'),
   body('password').isLength({ min: 8, max: 12 })
@@ -19,19 +16,12 @@ router.post('/register', [
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-
   const { email, password } = req.body;
-
   try {
-    // Check if user already exists
     const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userExists.rows.length > 0) return res.status(400).json({ message: 'Email is already registered' });
-
-    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpCache[email] = { otp, password }; // Temporarily save OTP and password
-
-    // Send OTP via email
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -39,46 +29,36 @@ router.post('/register', [
         pass: process.env.SMTP_PASSWORD,
       },
     });
-
     await transporter.sendMail({
       from: process.env.SMTP_EMAIL,
       to: email,
       subject: 'Your Registration OTP',
       text: `Your OTP is: ${otp}`,
     });
-
     res.json({ message: 'OTP sent to your email!' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error during registration' });
   }
 });
-
-// OTP Verification
 router.post('/verify-otp', async (req, res) => {
   const { email, otp, password } = req.body;
-
   if (!otpCache[email] || otpCache[email].otp !== otp) {
     return res.status(400).json({ message: 'Invalid OTP or OTP expired' });
   }
-
   try {
-    // Save user to database
-    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex'); // Hash password
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
     await pool.query(
       'INSERT INTO users (email, password) VALUES ($1, $2)',
       [email, hashedPassword]
     );
-
-    delete otpCache[email]; // Remove from cache after successful registration
+    delete otpCache[email];
     res.json({ message: 'Registration successful!' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error verifying OTP' });
   }
 });
-
-// View All Users
 router.get('/users', async (req, res) => {
   try {
     const users = await pool.query('SELECT id, email, created_at FROM users');
@@ -88,5 +68,4 @@ router.get('/users', async (req, res) => {
     res.status(500).json({ message: 'Error fetching users' });
   }
 });
-
 module.exports = router;
