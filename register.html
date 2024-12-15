@@ -46,14 +46,12 @@
     <input type="password" id="password" placeholder="Password" required>
     <input type="password" id="rePassword" placeholder="Re-enter Password" required>
     <button type="button" id="sendOtpBtn">Send OTP</button>
-    
-    <!-- OTP Section -->
+
     <div id="otpSection">
-      <input type="text" id="otp" placeholder="Enter OTP">
+      <input type="text" id="otp" placeholder="Enter OTP" required>
       <button type="submit">Register</button>
     </div>
   </form>
-  <p><a href="login.html">Back to Login</a></p>
 
   <script>
     const apiUrl = '/api/user';
@@ -63,22 +61,20 @@
       const password = document.querySelector('#password').value;
       const rePassword = document.querySelector('#rePassword').value;
 
-      // Validation: Check if passwords match
       if (password !== rePassword) {
-        alert("Passwords do not match!");
+        alert('Passwords do not match!');
         return;
       }
 
-      // Send request to API to send OTP
       const res = await fetch(`${apiUrl}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, rePassword }),
+        body: JSON.stringify({ email, password }),
       });
+
       const data = await res.json();
       alert(data.message);
 
-      // If OTP sent successfully, show OTP input
       if (res.status === 200) {
         document.querySelector('#otpSection').style.display = 'block';
       }
@@ -90,16 +86,15 @@
       const otp = document.querySelector('#otp').value;
       const password = document.querySelector('#password').value;
 
-      // Send OTP verification request
       const res = await fetch(`${apiUrl}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, password }),
       });
+
       const data = await res.json();
       alert(data.message);
 
-      // Redirect to login on success
       if (res.status === 200) {
         window.location.href = '/login';
       }
