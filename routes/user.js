@@ -7,7 +7,7 @@ const crypto = require('crypto');
 
 let otpCache = {}; // Temporary storage for OTPs
 
-// Validate Email and Password
+// Registration Endpoint
 router.post('/register', [
   body('email').isEmail().withMessage('Invalid email').matches(/@gmail\.com$/).withMessage('Only Gmail accounts are allowed'),
   body('password').isLength({ min: 8, max: 12 })
@@ -54,9 +54,9 @@ router.post('/register', [
   }
 });
 
-// OTP Verification
+// OTP Verification Endpoint
 router.post('/verify-otp', async (req, res) => {
-  const { email, otp, password } = req.body;
+  const { email, otp } = req.body;
 
   if (!otpCache[email] || otpCache[email].otp !== otp) {
     return res.status(400).json({ message: 'Invalid OTP or OTP expired' });
@@ -64,7 +64,7 @@ router.post('/verify-otp', async (req, res) => {
 
   try {
     // Save user to database
-    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex'); // Hash password
+    const hashedPassword = crypto.createHash('sha256').update(otpCache[email].password).digest('hex');
     await pool.query(
       'INSERT INTO users (email, password) VALUES ($1, $2)',
       [email, hashedPassword]
@@ -77,5 +77,13 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({ message: 'Error verifying OTP' });
   }
 });
-
+router.get('/users', async (req, res) => {
+  try {
+    const users = await pool.query('SELECT id, email, created_at FROM users');
+    res.json(users.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching users' });
+  }
+});
 module.exports = router;
