@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn USDT by Watching Ads</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: #008c4a;
+            color: #fff;
+        }
+
+        header .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        header nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        header nav ul li {
+            margin-left: 20px;
+        }
+
+        header nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #e3fcef;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #008c4a;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .earnings {
+            padding: 30px 20px;
+            text-align: center;
+            background-color: #fff;
+            border-top: 2px solid #008c4a;
+        }
+
+        .earnings input, .earnings button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 1rem;
+        }
+
+        .how-it-works, .referrals {
+            padding: 50px 20px;
+            text-align: center;
+        }
+
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        .step {
+            width: 45%;
+            margin: 10px 0;
+            padding: 20px;
+            background-color: #e3fcef;
+            border-radius: 5px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #008c4a;
+            color: #fff;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">EarnUSDT</div>
+        <nav>
+            <ul>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#referrals">Referrals</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Earn USDT by Watching Ads</h1>
+        <p>Earn easy money online by watching ads and referring your friends.</p>
+        <a href="#start-earning" class="cta-btn">Start Earning →</a>
+    </section>
+
+    <!-- Estimate Earnings -->
+    <section class="earnings">
+        <h2>Estimate My Earnings</h2>
+        <p>Enter the number of ads you'll watch to estimate your earnings.</p>
+        <input type="number" id="ads-watched" placeholder="Number of ads">
+        <button onclick="calculateEarnings()">Calculate</button>
+        <div id="earnings-result"></div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <h3>1. Sign Up</h3>
+                <p>Create an account to get started.</p>
+            </div>
+            <div class="step">
+                <h3>2. Watch Ads</h3>
+                <p>Watch ads to earn rewards in USDT.</p>
+            </div>
+            <div class="step">
+                <h3>3. Refer Friends</h3>
+                <p>Share your referral link and earn bonuses.</p>
+            </div>
+            <div class="step">
+                <h3>4. Withdraw USDT</h3>
+                <p>Withdraw your earnings to your wallet instantly.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Referrals -->
+    <section id="referrals" class="referrals">
+        <h2>Refer and Earn More</h2>
+        <p>Invite friends to maximize your earnings.</p>
+        <a href="#start-earning" class="cta-btn">Get Your Referral Link →</a>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2024 EarnUSDT. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        function calculateEarnings() {
+            const adsWatched = document.getElementById('ads-watched').value;
+            const ratePerAd = 0.1; // USDT rate per ad
+            const totalEarnings = (adsWatched * ratePerAd).toFixed(2);
+
+            if (adsWatched > 0) {
+                document.getElementById('earnings-result').innerHTML = 
+                    `You can earn <strong>${totalEarnings} USDT</strong> by watching ${adsWatched} ads!`;
+            } else {
+                document.getElementById('earnings-result').innerHTML = "Please enter a valid number of ads.";
+            }
+        }
+    </script>
+</body>
+</html>
