@@ -54,9 +54,9 @@ router.post('/register', [
   }
 });
 
-// OTP Verification Endpoint
+// OTP Verification
 router.post('/verify-otp', async (req, res) => {
-  const { email, otp } = req.body;
+  const { email, otp, password } = req.body;
 
   if (!otpCache[email] || otpCache[email].otp !== otp) {
     return res.status(400).json({ message: 'Invalid OTP or OTP expired' });
@@ -64,7 +64,7 @@ router.post('/verify-otp', async (req, res) => {
 
   try {
     // Save user to database
-    const hashedPassword = crypto.createHash('sha256').update(otpCache[email].password).digest('hex');
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex'); // Hash password
     await pool.query(
       'INSERT INTO users (email, password) VALUES ($1, $2)',
       [email, hashedPassword]
@@ -77,6 +77,8 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({ message: 'Error verifying OTP' });
   }
 });
+
+// View All Users
 router.get('/users', async (req, res) => {
   try {
     const users = await pool.query('SELECT id, email, created_at FROM users');
@@ -86,4 +88,5 @@ router.get('/users', async (req, res) => {
     res.status(500).json({ message: 'Error fetching users' });
   }
 });
+
 module.exports = router;
