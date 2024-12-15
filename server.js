@@ -20,6 +20,21 @@ app.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'register.html'));
 });
 
+// Middleware to check if user is logged in
+const checkAuth = (req, res, next) => {
+  const token = req.headers.authorization; // Token from frontend
+  if (!token) return res.redirect('/login'); // Redirect to login if no token
+  
+  // Validate token (simplified, replace with real logic like JWT/session validation)
+  if (token !== 'valid-token') return res.redirect('/login'); 
+  next();
+};
+
+// Protected route to serve "dashboard.html"
+app.get('/dashboard', checkAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
 // API Routes
 app.use('/api/user', userRoutes);
 
