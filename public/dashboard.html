@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: #008c4a;
+            color: #fff;
+        }
+
+        header .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        header nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        header nav ul li {
+            margin-left: 20px;
+        }
+
+        header nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Dashboard Container */
+        .dashboard {
+            padding: 20px;
+        }
+
+        .dashboard h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            color: #008c4a;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            width: 30%;
+            background-color: #e3fcef;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-box h2 {
+            font-size: 1.2rem;
+            color: #008c4a;
+            margin-bottom: 10px;
+        }
+
+        .stat-box p {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Withdrawal Section */
+        .withdraw {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .withdraw input {
+            padding: 10px;
+            margin-right: 10px;
+            width: 200px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .withdraw button {
+            padding: 10px 20px;
+            background-color: #008c4a;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .withdraw button:hover {
+            background-color: #006837;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #008c4a;
+            color: #fff;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">EarnUSDT</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Dashboard Section -->
+    <div class="dashboard">
+        <h1>Your Dashboard</h1>
+        <div class="stats">
+            <div class="stat-box">
+                <h2>Total USDT Earned</h2>
+                <p id="total-earned">0 USDT</p>
+            </div>
+            <div class="stat-box">
+                <h2>Ads Watched</h2>
+                <p id="ads-watched">0</p>
+            </div>
+            <div class="stat-box">
+                <h2>Referral Earnings</h2>
+                <p id="referral-earnings">0 USDT</p>
+            </div>
+        </div>
+
+        <!-- Withdraw Section -->
+        <div class="withdraw">
+            <h2>Withdraw Your Earnings</h2>
+            <p>Enter your wallet address and withdraw your earnings instantly.</p>
+            <input type="text" id="wallet-address" placeholder="Enter USDT Wallet Address">
+            <button onclick="withdrawEarnings()">Withdraw</button>
+            <p id="withdraw-message" style="margin-top: 10px; color: red;"></p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2024 EarnUSDT. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // Simulated User Data (Fetch this dynamically in a real app)
+        let totalEarnings = 50.25;
+        let adsWatched = 75;
+        let referralEarnings = 20.00;
+
+        // Displaying Data
+        document.getElementById('total-earned').innerText = totalEarnings + ' USDT';
+        document.getElementById('ads-watched').innerText = adsWatched;
+        document.getElementById('referral-earnings').innerText = referralEarnings + ' USDT';
+
+        // Withdrawal Function
+        function withdrawEarnings() {
+            const walletAddress = document.getElementById('wallet-address').value;
+
+            if (walletAddress.trim() === "") {
+                document.getElementById('withdraw-message').innerText = "Please enter a valid wallet address.";
+            } else if (totalEarnings <= 0) {
+                document.getElementById('withdraw-message').innerText = "You do not have enough earnings to withdraw.";
+            } else {
+                document.getElementById('withdraw-message').style.color = "green";
+                document.getElementById('withdraw-message').innerText = 
+                    "Withdrawal successful! " + totalEarnings + " USDT sent to " + walletAddress;
+
+                // Reset earnings after withdrawal
+                totalEarnings = 0;
+                referralEarnings = 0;
+                adsWatched = 0;
+
+                // Update UI
+                document.getElementById('total-earned').innerText = totalEarnings + ' USDT';
+                document.getElementById('ads-watched').innerText = adsWatched;
+                document.getElementById('referral-earnings').innerText = referralEarnings + ' USDT';
+            }
+        }
+    </script>
+</body>
+</html>
