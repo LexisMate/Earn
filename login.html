@@ -46,40 +46,36 @@
   <p><a href="register">Register</a> | <a href="reset.html">Forgot Password?</a></p>
 
   <script>
-    const apiUrl = '/api/user';
-
     document.querySelector('#loginForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const email = document.querySelector('#email').value;
-  const password = document.querySelector('#password').value;
+      e.preventDefault(); // Prevent form submission from reloading the page
+      
+      const email = document.querySelector('#email').value.trim();
+      const password = document.querySelector('#password').value.trim();
 
-  try {
-    const res = await fetch('/api/user/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+      try {
+        // Make the POST request to the login API
+        const res = await fetch('/api/user/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
 
-    const data = await res.json();
+        const data = await res.json(); // Parse the JSON response
 
-    if (!res.ok) {
-      console.error('Error during login:', data.message || 'Unknown error');
-      alert(data.message || 'Login failed!');
-      return;
-    }
+        // Handle the response
+        if (!res.ok) {
+          console.error('Login error:', data.message || 'Unknown error');
+          alert(data.message || 'Login failed!');
+          return;
+        }
 
-    alert(data.message || 'Login successful!');
-    // Redirect to dashboard or other protected page
-    window.location.href = '/dashboard';
-  } catch (error) {
-    console.error('Network error during login:', error);
-    alert('An error occurred. Please try again.');
-  }
-});
-
-      const data = await res.json();
-      alert(data.message || 'Login Successful!');
+        alert(data.message || 'Login successful!');
+        // Redirect the user to the dashboard
+        window.location.href = '/dashboard';
+      } catch (error) {
+        console.error('Network error during login:', error);
+        alert('A network error occurred. Please try again.');
+      }
     });
   </script>
 </body>
