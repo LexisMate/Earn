@@ -5,8 +5,8 @@
 - 🔒 *Captcha*: Prevents automated sign-ups
 - 🤝 *Refer System*: Incentivize user referrals
 - 🏠 *Homepage*: User dashboard
-- 🫂 *Customers Support
-- 🥲 *Error handling
+- 🫂 *Customers* Support
+- 🥲 *Error* handling
 - 📈 *Withdrawal Page*: Secure withdrawal system
 - 👥 *Profile*: User profile management
 - 📊 *History*: Transaction history
