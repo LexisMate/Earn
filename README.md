@@ -1,3 +1,16 @@
+###LOGIN
+###REGISTRATION
+###CAPTCHA
+###REFER SYSTEM
+###HOMEPAGE
+###WITHDRAWAL PAGE
+###PROFILE
+###HISTORY
+###ADS PARTNERING
+###TEMPORARY PAGES MAKING
+###UPGRADING TO HEROKU&AZURE
+###PUBLISHING
+###EARNING
 ```project/
 ├── public/               # Frontend files
 │   ├── index.html        # Login Page
