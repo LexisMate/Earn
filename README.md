@@ -5,13 +5,14 @@
 - 🔒 *Captcha*: Prevents automated sign-ups
 - 🤝 *Refer System*: Incentivize user referrals
 - 🏠 *Homepage*: User dashboard
-- 🫂 *Customers* Support
-- 🥲 *Error* handling
+- 🫂 *Customers Support*
+- 🥲 *Error handling*
 - 📈 *Withdrawal Page*: Secure withdrawal system
 - 👥 *Profile*: User profile management
 - 📊 *History*: Transaction history
 - 📢 *Ads Partnering*: Partner with advertisers
 - 🚧 *Temporary Pages*: Create temporary pages
+- ❤‍🔥 *Domain Binding*: binding with earn.izumie.me
 - 🚀 *Upgrading to Heroku & Azure*: Deploy on cloud platforms
 - 📈 *Publishing*: Publish your project
 - 💸 *Earning*: Monetize your project
