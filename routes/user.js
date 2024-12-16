@@ -6,6 +6,7 @@ const pool = require('../db');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
+// In-memory OTP cache (for temporary OTP storage)
 let otpCache = {};
 
 // Middleware to authenticate token
@@ -21,16 +22,18 @@ const authenticateToken = (req, res, next) => {
       console.error('Invalid token:', err.message);
       return res.status(403).json({ message: 'Forbidden' });
     }
-    req.user = user;
+    req.user = user; // Attach user details to the request
     next();
   });
 };
 
 // Registration route
 router.post('/register', [
-  body('email').isEmail().withMessage('Invalid email').matches(/@gmail\.com$/).withMessage('Only Gmail accounts are allowed'),
-  body('password').isLength({ min: 8, max: 12 })
-    .withMessage('Password must be 8-12 characters long')
+  body('email')
+    .isEmail().withMessage('Invalid email')
+    .matches(/@gmail\.com$/).withMessage('Only Gmail accounts are allowed'),
+  body('password')
+    .isLength({ min: 8, max: 12 }).withMessage('Password must be 8-12 characters long')
     .matches(/[A-Z]/).withMessage('Password must include an uppercase letter')
     .matches(/[a-z]/).withMessage('Password must include a lowercase letter')
     .matches(/\d/).withMessage('Password must include a number')
@@ -52,7 +55,7 @@ router.post('/register', [
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpCache[email] = { otp, password };
+    otpCache[email] = { otp, password }; // Temporarily store OTP and password
     console.log(`Generated OTP for ${email}: ${otp}`);
 
     const transporter = nodemailer.createTransport({
@@ -146,8 +149,8 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
   }
 });
 
-// Fetch all users (for debugging)
-router.get('/users', async (req, res) => {
+// Fetch all users (restricted)
+router.get('/users', authenticateToken, async (req, res) => {
   try {
     const users = await pool.query('SELECT id, email, created_at FROM users');
     console.log('Fetched users:', users.rows);
