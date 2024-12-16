@@ -6,6 +6,8 @@ const pool = require('../db');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 let otpCache = {};
+const fetch = require('node-fetch');
+
 const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization'];
   if (!token) {
@@ -21,6 +23,7 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
 router.post('/register', [
   body('email')
     .isEmail().withMessage('Invalid email')
@@ -67,6 +70,7 @@ router.post('/register', [
     res.status(500).json({ message: 'Error during registration' });
   }
 });
+
 router.post('/verify-otp', async (req, res) => {
   const { email, otp, password } = req.body;
   if (!otpCache[email] || otpCache[email].otp !== otp) {
@@ -87,31 +91,48 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({ message: 'Error verifying OTP' });
   }
 });
+
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, recaptchaResponse } = req.body;
   if (!email || !password) {
     console.warn('Login attempt with missing email or password');
     return res.status(400).json({ message: 'Email and password are required' });
   }
+
+  // Verify reCAPTCHA response
+  const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+  const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${recaptchaResponse}`;
+  
   try {
+    const response = await fetch(verifyUrl, { method: 'POST' });
+    const captchaData = await response.json();
+
+    if (!captchaData.success) {
+      return res.status(400).json({ message: 'reCAPTCHA verification failed' });
+    }
+
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length === 0) {
       console.warn(`Login attempt with unregistered email: ${email}`);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
+
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
     if (user.rows[0].password !== hashedPassword) {
       console.warn(`Invalid password attempt for email: ${email}`);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
+
     const token = jwt.sign({ email: user.rows[0].email }, process.env.JWT_SECRET, { expiresIn: '1h' });
     console.log(`User ${email} logged in successfully`);
     res.json({ message: 'Login successful', token });
+
   } catch (error) {
     console.error('Error during login process:', error.message, error.stack);
     res.status(500).json({ message: 'Error during login' });
   }
 });
+
 router.get('/dashboard', authenticateToken, async (req, res) => {
   try {
     const user = req.user;
@@ -122,6 +143,7 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Error accessing dashboard' });
   }
 });
+
 router.get('/users', authenticateToken, async (req, res) => {
   try {
     const users = await pool.query('SELECT id, email, created_at FROM users');
@@ -132,4 +154,5 @@ router.get('/users', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Error fetching users' });
   }
 });
+
 module.exports = router;
