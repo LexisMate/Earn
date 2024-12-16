@@ -5,29 +5,22 @@ const nodemailer = require('nodemailer');
 const pool = require('../db');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-
-// In-memory OTP cache (for temporary OTP storage)
 let otpCache = {};
-
-// Middleware to authenticate token
 const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization'];
   if (!token) {
     console.warn('Unauthorized access attempt');
     return res.status(401).json({ message: 'Unauthorized' });
   }
-
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       console.error('Invalid token:', err.message);
       return res.status(403).json({ message: 'Forbidden' });
     }
-    req.user = user; // Attach user details to the request
+    req.user = user;
     next();
   });
 };
-
-// Registration route
 router.post('/register', [
   body('email')
     .isEmail().withMessage('Invalid email')
@@ -44,20 +37,16 @@ router.post('/register', [
     console.error('Validation error:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
-
   const { email, password } = req.body;
-
   try {
     const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userExists.rows.length > 0) {
       console.warn(`Registration attempt with existing email: ${email}`);
       return res.status(400).json({ message: 'Email is already registered' });
     }
-
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpCache[email] = { otp, password }; // Temporarily store OTP and password
+    otpCache[email] = { otp, password };
     console.log(`Generated OTP for ${email}: ${otp}`);
-
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -65,14 +54,12 @@ router.post('/register', [
         pass: process.env.SMTP_PASSWORD,
       },
     });
-
     await transporter.sendMail({
       from: process.env.SMTP_EMAIL,
       to: email,
       subject: 'Your Registration OTP',
       text: `Your OTP is: ${otp}`,
     });
-
     console.log(`OTP email sent to ${email}`);
     res.json({ message: 'OTP sent to your email!' });
   } catch (error) {
@@ -80,23 +67,18 @@ router.post('/register', [
     res.status(500).json({ message: 'Error during registration' });
   }
 });
-
-// Verify OTP route
 router.post('/verify-otp', async (req, res) => {
   const { email, otp, password } = req.body;
-
   if (!otpCache[email] || otpCache[email].otp !== otp) {
     console.warn(`Invalid OTP attempt for ${email}`);
     return res.status(400).json({ message: 'Invalid OTP or OTP expired' });
   }
-
   try {
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
     await pool.query(
       'INSERT INTO users (email, password) VALUES ($1, $2)',
       [email, hashedPassword]
     );
-
     delete otpCache[email];
     console.log(`User ${email} successfully registered.`);
     res.json({ message: 'Registration successful!' });
@@ -105,29 +87,23 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({ message: 'Error verifying OTP' });
   }
 });
-
-// Login route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
   if (!email || !password) {
     console.warn('Login attempt with missing email or password');
     return res.status(400).json({ message: 'Email and password are required' });
   }
-
   try {
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length === 0) {
       console.warn(`Login attempt with unregistered email: ${email}`);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
-
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
     if (user.rows[0].password !== hashedPassword) {
       console.warn(`Invalid password attempt for email: ${email}`);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
-
     const token = jwt.sign({ email: user.rows[0].email }, process.env.JWT_SECRET, { expiresIn: '1h' });
     console.log(`User ${email} logged in successfully`);
     res.json({ message: 'Login successful', token });
@@ -136,8 +112,6 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Error during login' });
   }
 });
-
-// Dashboard route (protected)
 router.get('/dashboard', authenticateToken, async (req, res) => {
   try {
     const user = req.user;
@@ -148,8 +122,6 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Error accessing dashboard' });
   }
 });
-
-// Fetch all users (restricted)
 router.get('/users', authenticateToken, async (req, res) => {
   try {
     const users = await pool.query('SELECT id, email, created_at FROM users');
@@ -160,5 +132,4 @@ router.get('/users', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Error fetching users' });
   }
 });
-
 module.exports = router;
