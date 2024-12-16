@@ -4,8 +4,27 @@ const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
 const pool = require('../db');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 
 let otpCache = {};
+
+// Middleware to authenticate token
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+  if (!token) {
+    console.warn('Unauthorized access attempt');
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      console.error('Invalid token:', err.message);
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    req.user = user;
+    next();
+  });
+};
 
 // Registration route
 router.post('/register', [
@@ -26,19 +45,16 @@ router.post('/register', [
   const { email, password } = req.body;
 
   try {
-    // Check if user already exists
     const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userExists.rows.length > 0) {
       console.warn(`Registration attempt with existing email: ${email}`);
       return res.status(400).json({ message: 'Email is already registered' });
     }
 
-    // Generate OTP and cache it
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpCache[email] = { otp, password }; // Temporarily save OTP and password
+    otpCache[email] = { otp, password };
     console.log(`Generated OTP for ${email}: ${otp}`);
 
-    // Send OTP via email
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -72,16 +88,12 @@ router.post('/verify-otp', async (req, res) => {
   }
 
   try {
-    // Hash the password
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-
-    // Save user to the database
     await pool.query(
       'INSERT INTO users (email, password) VALUES ($1, $2)',
       [email, hashedPassword]
     );
 
-    // Clear OTP from cache
     delete otpCache[email];
     console.log(`User ${email} successfully registered.`);
     res.json({ message: 'Registration successful!' });
@@ -90,6 +102,8 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({ message: 'Error verifying OTP' });
   }
 });
+
+// Login route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -99,26 +113,36 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    // Check if user exists
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length === 0) {
       console.warn(`Login attempt with unregistered email: ${email}`);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // Validate password
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
     if (user.rows[0].password !== hashedPassword) {
       console.warn(`Invalid password attempt for email: ${email}`);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // Successful login
+    const token = jwt.sign({ email: user.rows[0].email }, process.env.JWT_SECRET, { expiresIn: '1h' });
     console.log(`User ${email} logged in successfully`);
-    res.json({ message: 'Login successful' });
+    res.json({ message: 'Login successful', token });
   } catch (error) {
     console.error('Error during login process:', error.message, error.stack);
     res.status(500).json({ message: 'Error during login' });
+  }
+});
+
+// Dashboard route (protected)
+router.get('/dashboard', authenticateToken, async (req, res) => {
+  try {
+    const user = req.user;
+    console.log(`Dashboard accessed by ${user.email}`);
+    res.json({ message: `Welcome to the dashboard, ${user.email}!` });
+  } catch (error) {
+    console.error('Error accessing dashboard:', error.message, error.stack);
+    res.status(500).json({ message: 'Error accessing dashboard' });
   }
 });
 
