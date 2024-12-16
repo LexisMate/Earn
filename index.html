@@ -16,15 +16,15 @@
         body {
             line-height: 1.6;
             color: #333;
-            background-color: #f8f9fa;
+            background-color: #f4f4f9;
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
-            background-color: #008c4a;
+            padding: 15px 20px;
+            background-color: #0047ab;
             color: #fff;
         }
 
@@ -33,30 +33,54 @@
             font-weight: bold;
         }
 
-        header nav ul {
-            display: flex;
-            list-style: none;
+        .menu {
+            position: relative;
         }
 
-        header nav ul li {
-            margin-left: 20px;
+        .menu-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
         }
 
-        header nav ul li a {
-            color: #fff;
+        .menu-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: white;
+            color: #333;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .menu-content a {
+            display: block;
+            padding: 10px 15px;
             text-decoration: none;
-            font-weight: bold;
+            color: #333;
+        }
+
+        .menu-content a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .menu:hover .menu-content {
+            display: block;
         }
 
         .hero {
             text-align: center;
-            padding: 50px 20px;
-            background-color: #e3fcef;
+            padding: 60px 20px;
+            background-color: #e9f1ff;
         }
 
         .hero h1 {
             font-size: 2.5rem;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .hero p {
@@ -66,19 +90,23 @@
 
         .cta-btn {
             display: inline-block;
-            padding: 10px 20px;
-            background-color: #008c4a;
+            padding: 12px 24px;
+            background-color: #0047ab;
             color: #fff;
             text-decoration: none;
             border-radius: 5px;
             font-weight: bold;
         }
 
+        .cta-btn:hover {
+            background-color: #00317a;
+        }
+
         .earnings {
-            padding: 30px 20px;
+            padding: 40px 20px;
             text-align: center;
             background-color: #fff;
-            border-top: 2px solid #008c4a;
+            border-top: 3px solid #0047ab;
         }
 
         .earnings input, .earnings button {
@@ -87,7 +115,18 @@
             font-size: 1rem;
         }
 
-        .how-it-works, .referrals {
+        .earnings button {
+            background-color: #0047ab;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .earnings button:hover {
+            background-color: #00317a;
+        }
+
+        .how-it-works {
             padding: 50px 20px;
             text-align: center;
         }
@@ -102,14 +141,14 @@
             width: 45%;
             margin: 10px 0;
             padding: 20px;
-            background-color: #e3fcef;
+            background-color: #e9f1ff;
             border-radius: 5px;
         }
 
         footer {
             text-align: center;
             padding: 20px;
-            background-color: #008c4a;
+            background-color: #0047ab;
             color: #fff;
             margin-top: 20px;
         }
@@ -119,27 +158,27 @@
     <!-- Header -->
     <header>
         <div class="logo">EarnUSDT</div>
-        <nav>
-            <ul>
-                <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#referrals">Referrals</a></li>
-                <li><a href="login">Login</a></li>
-                <li><a href="register">Register</a></li>
-            </ul>
-        </nav>
+        <div class="menu">
+            <button class="menu-button">☰</button>
+            <div class="menu-content">
+                <a href="#how-it-works">How It Works</a>
+                <a href="login">Login</a>
+                <a href="register">Register</a>
+            </div>
+        </div>
     </header>
 
     <!-- Hero Section -->
     <section class="hero">
         <h1>Earn USDT by Watching Ads</h1>
-        <p>Earn easy money online by watching ads and referring your friends.</p>
+        <p>Earn money online by watching ads with ease. Start today!</p>
         <a href="#start-earning" class="cta-btn">Start Earning →</a>
     </section>
 
     <!-- Estimate Earnings -->
     <section class="earnings">
-        <h2>Estimate My Earnings</h2>
-        <p>Enter the number of ads you'll watch to estimate your earnings.</p>
+        <h2>Estimate Your Earnings</h2>
+        <p>Enter the number of ads you'll watch to estimate your rewards.</p>
         <input type="number" id="ads-watched" placeholder="Number of ads">
         <button onclick="calculateEarnings()">Calculate</button>
         <div id="earnings-result"></div>
@@ -151,28 +190,17 @@
         <div class="steps">
             <div class="step">
                 <h3>1. Sign Up</h3>
-                <p>Create an account to get started.</p>
+                <p>Register and create your account.</p>
             </div>
             <div class="step">
                 <h3>2. Watch Ads</h3>
-                <p>Watch ads to earn rewards in USDT.</p>
+                <p>Earn USDT rewards for every ad you watch.</p>
             </div>
             <div class="step">
-                <h3>3. Refer Friends</h3>
-                <p>Share your referral link and earn bonuses.</p>
-            </div>
-            <div class="step">
-                <h3>4. Withdraw USDT</h3>
-                <p>Withdraw your earnings to your wallet instantly.</p>
+                <h3>3. Withdraw USDT</h3>
+                <p>Transfer your rewards to your wallet instantly.</p>
             </div>
         </div>
-    </section>
-
-    <!-- Referrals -->
-    <section id="referrals" class="referrals">
-        <h2>Refer and Earn More</h2>
-        <p>Invite friends to maximize your earnings.</p>
-        <a href="#start-earning" class="cta-btn">Get Your Referral Link →</a>
     </section>
 
     <!-- Footer -->
