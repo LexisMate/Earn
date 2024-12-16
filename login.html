@@ -19,6 +19,10 @@
       display: flex;
       flex-direction: column;
       width: 300px;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
     }
     input, button {
       margin: 10px 0;
@@ -30,17 +34,26 @@
       color: #fff;
       border: none;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
     button:hover {
       background-color: #0056b3;
     }
+    .captcha {
+      margin-top: 10px;
+    }
   </style>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
   <h1>Login</h1>
   <form id="loginForm">
     <input type="email" id="email" placeholder="Email" required>
     <input type="password" id="password" placeholder="Password" required>
+    <!-- reCAPTCHA -->
+    <div class="captcha">
+      <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY"></div>
+    </div>
     <button type="submit">Login</button>
   </form>
   <p><a href="register">Register</a> | <a href="reset.html">Forgot Password?</a></p>
@@ -48,16 +61,22 @@
   <script>
     document.querySelector('#loginForm')?.addEventListener('submit', async (e) => {
       e.preventDefault(); // Prevent form submission from reloading the page
-      
+
       const email = document.querySelector('#email').value.trim();
       const password = document.querySelector('#password').value.trim();
+      const recaptchaResponse = grecaptcha.getResponse();
+
+      if (!recaptchaResponse) {
+        alert('Please complete the CAPTCHA verification.');
+        return;
+      }
 
       try {
         // Make the POST request to the login API
         const res = await fetch('/api/user/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email, password, recaptcha: recaptchaResponse }),
         });
 
         const data = await res.json(); // Parse the JSON response
