@@ -5,9 +5,11 @@ const nodemailer = require('nodemailer');
 const pool = require('../db');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-let otpCache = {};
 const fetch = require('node-fetch');
 
+let otpCache = {};
+
+// Middleware to authenticate token
 const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization'];
   if (!token) {
@@ -24,6 +26,17 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// reCAPTCHA Verification
+const verifyRecaptcha = async (recaptchaResponse) => {
+  const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+  const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${recaptchaResponse}`;
+  
+  const response = await fetch(verifyUrl, { method: 'POST' });
+  const data = await response.json();
+  return data.success;
+};
+
+// Registration route
 router.post('/register', [
   body('email')
     .isEmail().withMessage('Invalid email')
@@ -40,16 +53,29 @@ router.post('/register', [
     console.error('Validation error:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
-  const { email, password } = req.body;
+
+  const { email, password, recaptchaResponse } = req.body;
+
   try {
+    // Verify reCAPTCHA
+    const captchaValid = await verifyRecaptcha(recaptchaResponse);
+    if (!captchaValid) {
+      return res.status(400).json({ message: 'reCAPTCHA verification failed' });
+    }
+
+    // Check if user already exists
     const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userExists.rows.length > 0) {
       console.warn(`Registration attempt with existing email: ${email}`);
       return res.status(400).json({ message: 'Email is already registered' });
     }
+
+    // Generate OTP and save it to cache
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpCache[email] = { otp, password };
     console.log(`Generated OTP for ${email}: ${otp}`);
+
+    // Send OTP via email
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -63,54 +89,59 @@ router.post('/register', [
       subject: 'Your Registration OTP',
       text: `Your OTP is: ${otp}`,
     });
+
     console.log(`OTP email sent to ${email}`);
     res.json({ message: 'OTP sent to your email!' });
+
   } catch (error) {
-    console.error('Error during registration process:', error.message, error.stack);
+    console.error('Error during registration process:', error.message);
     res.status(500).json({ message: 'Error during registration' });
   }
 });
 
+// Verify OTP and complete registration
 router.post('/verify-otp', async (req, res) => {
   const { email, otp, password } = req.body;
+
   if (!otpCache[email] || otpCache[email].otp !== otp) {
     console.warn(`Invalid OTP attempt for ${email}`);
     return res.status(400).json({ message: 'Invalid OTP or OTP expired' });
   }
+
   try {
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
     await pool.query(
       'INSERT INTO users (email, password) VALUES ($1, $2)',
       [email, hashedPassword]
     );
+
     delete otpCache[email];
     console.log(`User ${email} successfully registered.`);
     res.json({ message: 'Registration successful!' });
+
   } catch (error) {
-    console.error('Error verifying OTP:', error.message, error.stack);
+    console.error('Error verifying OTP:', error.message);
     res.status(500).json({ message: 'Error verifying OTP' });
   }
 });
 
+// Login route
 router.post('/login', async (req, res) => {
   const { email, password, recaptchaResponse } = req.body;
+
   if (!email || !password) {
     console.warn('Login attempt with missing email or password');
     return res.status(400).json({ message: 'Email and password are required' });
   }
 
-  // Verify reCAPTCHA response
-  const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
-  const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${recaptchaResponse}`;
-  
   try {
-    const response = await fetch(verifyUrl, { method: 'POST' });
-    const captchaData = await response.json();
-
-    if (!captchaData.success) {
+    // Verify reCAPTCHA
+    const captchaValid = await verifyRecaptcha(recaptchaResponse);
+    if (!captchaValid) {
       return res.status(400).json({ message: 'reCAPTCHA verification failed' });
     }
 
+    // Check user credentials
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length === 0) {
       console.warn(`Login attempt with unregistered email: ${email}`);
@@ -128,18 +159,19 @@ router.post('/login', async (req, res) => {
     res.json({ message: 'Login successful', token });
 
   } catch (error) {
-    console.error('Error during login process:', error.message, error.stack);
+    console.error('Error during login process:', error.message);
     res.status(500).json({ message: 'Error during login' });
   }
 });
 
+// Other routes remain unchanged
 router.get('/dashboard', authenticateToken, async (req, res) => {
   try {
     const user = req.user;
     console.log(`Dashboard accessed by ${user.email}`);
     res.json({ message: `Welcome to the dashboard, ${user.email}!` });
   } catch (error) {
-    console.error('Error accessing dashboard:', error.message, error.stack);
+    console.error('Error accessing dashboard:', error.message);
     res.status(500).json({ message: 'Error accessing dashboard' });
   }
 });
@@ -150,7 +182,7 @@ router.get('/users', authenticateToken, async (req, res) => {
     console.log('Fetched users:', users.rows);
     res.json(users.rows);
   } catch (error) {
-    console.error('Error fetching users:', error.message, error.stack);
+    console.error('Error fetching users:', error.message);
     res.status(500).json({ message: 'Error fetching users' });
   }
 });
