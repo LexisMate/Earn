@@ -37,7 +37,11 @@
     #otpSection {
       display: none;
     }
+    .g-recaptcha {
+      margin: 10px 0;
+    }
   </style>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
   <h1>Register</h1>
@@ -45,6 +49,7 @@
     <input type="email" id="email" placeholder="Email" required>
     <input type="password" id="password" placeholder="Password" required>
     <input type="password" id="rePassword" placeholder="Re-enter Password" required>
+    <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY"></div>
     <button type="button" id="sendOtpBtn">Send OTP</button>
 
     <div id="otpSection">
@@ -60,6 +65,12 @@
       const email = document.querySelector('#email').value;
       const password = document.querySelector('#password').value;
       const rePassword = document.querySelector('#rePassword').value;
+      const recaptchaResponse = grecaptcha.getResponse();
+
+      if (!recaptchaResponse) {
+        alert('Please complete the reCAPTCHA.');
+        return;
+      }
 
       if (password !== rePassword) {
         alert('Passwords do not match!');
@@ -69,7 +80,7 @@
       const res = await fetch(`${apiUrl}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, recaptchaResponse }),
       });
 
       const data = await res.json();
