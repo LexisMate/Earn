@@ -12,7 +12,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 // Dynamically handle page routing without .html extensions
-const pages = ['login', 'register', 'dashboard', 'withdraw', 'settings'];
+const pages = ['login', 'register', 'dashboard', 'withdraw', 'settings','reset'];
 
 // Loop through the pages and create routes for each
 pages.forEach(page => {
