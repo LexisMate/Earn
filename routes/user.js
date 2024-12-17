@@ -5,17 +5,8 @@ const nodemailer = require('nodemailer');
 const pool = require('../db');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const fetch = require('node-fetch');
 
 let otpCache = {};
-
-const verifyRecaptcha = async (recaptchaResponse) => {
-  const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
-  const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${recaptchaResponse}`;
-  const response = await fetch(verifyUrl, { method: 'POST' });
-  const data = await response.json();
-  return data.success;
-};
 
 router.post('/register', [
   body('email')
@@ -33,12 +24,8 @@ router.post('/register', [
     console.error('Validation error:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
-  const { email, password, recaptchaResponse } = req.body;
+  const { email, password } = req.body;
   try {
-    const captchaValid = await verifyRecaptcha(recaptchaResponse);
-    if (!captchaValid) {
-      return res.status(400).json({ message: 'reCAPTCHA verification failed' });
-    }
     const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userExists.rows.length > 0) {
       return res.status(400).json({ message: 'Email is already registered' });
@@ -114,15 +101,11 @@ router.post('/verify-otp', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password, recaptchaResponse } = req.body;
+  const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password are required' });
   }
   try {
-    const captchaValid = await verifyRecaptcha(recaptchaResponse);
-    if (!captchaValid) {
-      return res.status(400).json({ message: 'reCAPTCHA verification failed' });
-    }
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length === 0) {
       return res.status(400).json({ message: 'Invalid email or password' });
