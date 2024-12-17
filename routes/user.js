@@ -8,21 +8,7 @@ const jwt = require('jsonwebtoken');
 const fetch = require('node-fetch');
 
 let otpCache = {};
-const authenticateToken = (req, res, next) => {
-  const token = req.headers['authorization'];
-  if (!token) {
-    console.warn('Unauthorized access attempt');
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      console.error('Invalid token:', err.message);
-      return res.status(403).json({ message: 'Forbidden' });
-    }
-    req.user = user;
-    next();
-  });
-};
+
 const verifyRecaptcha = async (recaptchaResponse) => {
   const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
   const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${recaptchaResponse}`;
@@ -30,6 +16,7 @@ const verifyRecaptcha = async (recaptchaResponse) => {
   const data = await response.json();
   return data.success;
 };
+
 router.post('/register', [
   body('email')
     .isEmail().withMessage('Invalid email')
@@ -77,6 +64,7 @@ router.post('/register', [
     res.status(500).json({ message: 'Error during registration' });
   }
 });
+
 router.post('/reset-password', async (req, res) => {
   const { email } = req.body;
   if (!email) {
@@ -108,6 +96,7 @@ router.post('/reset-password', async (req, res) => {
     res.status(500).json({ message: 'Error sending reset OTP' });
   }
 });
+
 router.post('/verify-otp', async (req, res) => {
   const { email, otp, newPassword } = req.body;
   if (!otpCache[email] || otpCache[email].otp !== otp) {
@@ -123,6 +112,7 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({ message: 'Error resetting password' });
   }
 });
+
 router.post('/login', async (req, res) => {
   const { email, password, recaptchaResponse } = req.body;
   if (!email || !password) {
@@ -148,4 +138,5 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Error during login' });
   }
 });
+
 module.exports = router;
