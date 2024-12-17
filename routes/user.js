@@ -86,17 +86,30 @@ router.post('/reset-password', async (req, res) => {
 
 router.post('/verify-otp', async (req, res) => {
   const { email, otp, newPassword } = req.body;
+
   if (!otpCache[email] || otpCache[email].otp !== otp) {
     return res.status(400).json({ message: 'Invalid OTP or OTP expired' });
   }
+
   try {
-    const hashedPassword = crypto.createHash('sha256').update(newPassword).digest('hex');
-    await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashedPassword, email]);
-    delete otpCache[email];
-    res.json({ message: 'Password reset successful!' });
+    if (otpCache[email].password) {
+      // Registration flow
+      const hashedPassword = crypto.createHash('sha256').update(otpCache[email].password).digest('hex');
+      await pool.query('INSERT INTO users (email, password) VALUES ($1, $2)', [email, hashedPassword]);
+      delete otpCache[email];
+      return res.json({ message: 'Registration successful!' });
+    } else if (newPassword) {
+      // Password reset flow
+      const hashedPassword = crypto.createHash('sha256').update(newPassword).digest('hex');
+      await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashedPassword, email]);
+      delete otpCache[email];
+      return res.json({ message: 'Password reset successful!' });
+    } else {
+      return res.status(400).json({ message: 'Invalid request' });
+    }
   } catch (error) {
-    console.error('Error resetting password:', error.message);
-    res.status(500).json({ message: 'Error resetting password' });
+    console.error('Error in OTP verification:', error.message);
+    res.status(500).json({ message: 'Error during OTP verification' });
   }
 });
 
