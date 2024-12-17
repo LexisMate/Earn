@@ -189,17 +189,5 @@
         <p>&copy; 2024 Premium Platform. Built with $500 for the best experience.</p>
         <p>Need help? <a href="/help">Contact Us</a></p>
     </footer>
-
-    <!-- Optional JavaScript -->
-    <script>
-        // Logic from previous implementation remains intact (e.g., authentication checks)
-        function isAuthenticated() {
-            const token = localStorage.getItem('authToken');
-            return token !== null && token === 'valid-token';
-        }
-        if (!isAuthenticated()) {
-            window.location.href = '/login';
-        }
-    </script>
 </body>
 </html>
