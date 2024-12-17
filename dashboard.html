@@ -146,13 +146,6 @@
     </footer>
 
     <script>
-        function isAuthenticated() {
-            const token = localStorage.getItem('authToken');
-            return token !== null && token === 'valid-token';
-        }
-        if (!isAuthenticated()) {
-            window.location.href = '/login';
-        }
         let totalEarnings = 50.25;
         let adsWatched = 75;
         let referralEarnings = 20.00;
